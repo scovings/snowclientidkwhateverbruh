@@ -127,8 +127,7 @@ void Eagle::onClientTick(){
         }
 
         int block = get_block(env, x, y-0.49, z);
-        if(block == 0){
-            //sneak
+        if(block == 0 && isSneaking(env, thePlayer) && onGround(env, thePlayer)){ // Air            //sneak
             set_sneaking(env, true);
         }else{
             //dont sneak
@@ -168,7 +167,7 @@ void Velocity::onClientTick(){
        
         jobject thePlayer = get_player(env);
 
-        if(getHurtTime(env, thePlayer) > hurtTimeDelay){
+        if(getHurtTime(env, thePlayer) > hurtTimeDelay && !isBurning(env, thePlayer) && onGround(env, thePlayer)){
 
             double x1 = getX(env, thePlayer);
             double y1 = getY(env, thePlayer);
