@@ -136,6 +136,67 @@ double getZ(JNIEnv* env, jobject entity){
 }
 
 
+void setMotion(JNIEnv* env, jobject entity, double x, double y, double z){
+    jclass clazz = env->GetObjectClass(entity);
+
+    jfieldID motionX = env->GetFieldID(clazz, "v", "D");
+    jfieldID motionY = env->GetFieldID(clazz, "w", "D");
+    jfieldID motionZ = env->GetFieldID(clazz, "x", "D");
+
+
+    env->SetDoubleField(entity, motionX, x);
+    env->SetDoubleField(entity, motionY, y);
+    env->SetDoubleField(entity, motionZ, z);
+
+
+
+
+}
+
+
+double getMotionX(JNIEnv* env, jobject entity){
+	if(entity == NULL){
+		return 0;
+	}
+	jclass klass = env->GetObjectClass(entity);
+    jfieldID field = env->GetFieldID(klass, "v", "D");
+	double result = env->GetDoubleField(entity, field);
+	env->DeleteLocalRef(klass);
+	return result;
+}
+double getMotionY(JNIEnv* env, jobject entity){
+	if(entity == NULL){
+		return 0;
+	}
+	jclass klass = env->GetObjectClass(entity);
+    jfieldID field = env->GetFieldID(klass, "w", "D");
+	double result = env->GetDoubleField(entity, field);
+	env->DeleteLocalRef(klass);
+	return result;
+}
+double getMotionZ(JNIEnv* env, jobject entity){
+	if(entity == NULL){
+		return 0;
+	}
+	jclass klass = env->GetObjectClass(entity);
+    jfieldID field = env->GetFieldID(klass, "x", "D");
+	double result = env->GetDoubleField(entity, field);
+	env->DeleteLocalRef(klass);
+	return result;
+}
+
+
+
+int getHurtTime(JNIEnv* env, jobject entity){
+    if(entity == NULL){
+		return 0;
+	}
+	jclass klass = env->GetObjectClass(entity);
+    jfieldID field = env->GetFieldID(klass, "Z", "I");
+	int result = env->GetIntField(entity, field);
+	env->DeleteLocalRef(klass);
+	return result;
+}
 
 
 

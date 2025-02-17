@@ -142,38 +142,3 @@ void Eagle::on_key_press(){
     toggle();
 }
 
-
-void Step::init(){
-    enabled = false;
-    subscribe("on-tick", &Step::onClientTick, this);  // Subscribe to "on-tick"
-    subscribe("80", &Step::on_key_press, this); // Subscribe to "Key-press"
-    
-}
-
-
-void Step::toggle(){
-        enabled = !enabled;
-    if (enabled) {
-        onEnable();
-    } else {
-        Step::height = 0.6;
-        onDisable();
-    }
-    }
-void Step::onEnable(){
-    printf("[M] Step Enabled!\n");
-    }
-void Step::onDisable(){
-    printf("[M] Step Disabled-+!\n");
-
-    }
-void Step::onClientTick(){
-    if(enabled){
-         jobject thePlayer = get_player(env);
-
-        stepHeight(env, thePlayer, height);
-    }
-}
-void Step::on_key_press(){
-    toggle();
-}

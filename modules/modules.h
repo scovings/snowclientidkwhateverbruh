@@ -35,20 +35,7 @@ class Fly : public Module{
     }
 };
 
-class Step : public Module{
-    public:
 
-    float height = 0.6;
-    void init();
-    void toggle();
-    void onEnable();
-    void onDisable();
-    void onClientTick();
-    void on_key_press();
-    Step(std::string name, int key) : Module(name, key){
-        init();
-    }
-};
 
 
 
@@ -81,6 +68,29 @@ class Eagle : public  Module{
     void on_key_press();
 
     Eagle(std::string name, int key) : Module(name,key){
+        init();
+    }
+
+};
+
+
+
+
+class Velocity : public  Module{
+    public:
+
+    double x;
+    double y;
+    double z;
+
+    void init();
+    void toggle();
+    void onEnable();
+    void onDisable();
+    void onClientTick();
+    void on_key_press();
+
+    Velocity(std::string name, int key) : Module(name,key){
         init();
     }
 

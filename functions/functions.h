@@ -18,6 +18,20 @@ extern jobject get_world(JNIEnv* env);
 extern double getX(JNIEnv* env, jobject entity);
 extern double getY(JNIEnv* env, jobject entity);
 extern double getZ(JNIEnv* env, jobject entity);
+
+extern double getMotionX(JNIEnv* env, jobject entity);
+extern double getMotionY(JNIEnv* env, jobject entity);
+extern double getMotionZ(JNIEnv* env, jobject entity);
+
+
+extern void setMotionX(JNIEnv* env, jobject entity, float newMotion);
+extern void setMotionY(JNIEnv* env, jobject entity, float newMotion);
+extern void setMotionZ(JNIEnv* env, jobject entity, float newMotion);
+extern void setMotion(JNIEnv* env, jobject entity, double x, double y, double z);
+
+extern int getHurtTime(JNIEnv* env, jobject entity);
+
+
 extern int get_block(JNIEnv* env,int x, int y, int z);
 
 extern void set_sneaking(JNIEnv* env, bool flag);
