@@ -85,7 +85,7 @@ void Eagle::init(){
 }
 
 void Eagle::toggle(){
-            enabled = !enabled;
+    enabled = !enabled;
     if (enabled) {
         onEnable();
     } else {
@@ -127,7 +127,6 @@ void Eagle::onClientTick(){
         }
 
         int block = get_block(env, x, y-0.49, z);
-        std::cout << block << std::endl;
         if(block == 0){
             //sneak
             set_sneaking(env, true);
@@ -142,3 +141,50 @@ void Eagle::on_key_press(){
     toggle();
 }
 
+
+void Velocity::init(){
+    enabled = false;
+    subscribe("on-tick", &Velocity::onClientTick, this);  // Subscribe to "on-tick"
+    subscribe("73", &Velocity::on_key_press, this); // Subscribe to "Key-press"
+
+}
+void Velocity::toggle(){
+        enabled = !enabled;
+    if (enabled) {
+        onEnable();
+    } else {
+        onDisable();
+    }
+    }
+void Velocity::onEnable(){
+    printf("[M] Velocity Enabled!\n");
+    }
+void Velocity::onDisable(){
+    printf("[M] Velocity Disabled-+!\n");
+
+    }
+void Velocity::onClientTick(){
+    if(enabled){
+       
+        jobject thePlayer = get_player(env);
+
+        if(getHurtTime(env, thePlayer) > hurtTimeDelay){
+
+            double x1 = getX(env, thePlayer);
+            double y1 = getY(env, thePlayer);
+            double z1 = getZ(env, thePlayer);
+
+            double newX = x1 * x;
+            double newY = y1 * y;
+            double newZ = z1 * z;
+
+            setMotion(env, thePlayer, newX, newY, newZ);
+
+
+        }
+
+    }
+}
+void Velocity::on_key_press(){
+    toggle();
+}

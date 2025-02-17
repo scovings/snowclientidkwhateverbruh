@@ -9,10 +9,11 @@ static int keybind_to_set = 0;
 static int fastplace_key = 'G';
 static int flight_key = 'F';
 static bool fastplace_enabled = false;
-static bool step_enabled = false;
 static bool flight_enabled = false;
 static bool eagle_enabled = false;
 static bool sprint_enabled = false;
+static bool velo_enabled = false;
+
 //fixed that shit
 void BlockGameInput(bool block)
 {
@@ -66,15 +67,15 @@ void GUI::shutdown()
 
 Fly* fly_mod = new Fly("Flyhack", 'F');
 Fastplace* fastplace_mod = new Fastplace(std::string("Fastplace"), 'G');
-Step* step_mod = new Step("Step", 'P');
 Eagle* eagle_mod = new Eagle("Eagle", 'M');
+Velocity* velocity_mod = new Velocity("Velocity", 'I');
 void GUI::draw()
 {
 
     flight_enabled = fly_mod->enabled;
     eagle_enabled = eagle_mod->enabled;
     fastplace_enabled = fastplace_mod->enabled;
-
+    velo_enabled = velocity_mod->enabled;
 
 
     if (!do_draw)
@@ -83,7 +84,12 @@ void GUI::draw()
     BlockGameInput(true);
 
     fastplace_mod->max_delay = GUI::newdelay;
-    step_mod->height = GUI::newHeight;
+    velocity_mod->x = GUI::x1;
+    velocity_mod->y = GUI::y1;
+    velocity_mod->z = GUI::z1;
+    velocity_mod->hurtTimeDelay = GUI::hurtTime;
+
+
     if (waiting_for_key) {
         for (int key = 1; key < 256; key++) {
             if (GetAsyncKeyState(key) & 0x8000) {
@@ -108,86 +114,81 @@ void GUI::draw()
             do_draw = false;
             BlockGameInput(false);
         }
-
+    
         ImGui::Text("Welcome to DOWNPOAR!");
         ImGui::Separator();
         ImGui::Spacing();
+    
+        if (ImGui::CollapsingHeader("Fastplace")) {
+            if (ImGui::Checkbox("Enable Fastplace", &fastplace_enabled)) {
+                emit("71");
+            }
+            ImGui::SliderInt("Fastplace Delay", &GUI::newdelay, 1, 10, "Delay: %d");
+            ImGui::SameLine();
+            if (ImGui::Button(waiting_for_key && keybind_to_set == 1 ? "Press a key..." : (std::string("Key: ") + (char)fastplace_key).c_str())) {
+                waiting_for_key = true;
+                keybind_to_set = 1;
+            }
+        }
+    
+        if (ImGui::CollapsingHeader("Flight")) {
+            if (ImGui::Checkbox("Enable Flight", &flight_enabled)) {
+                emit("96");
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(waiting_for_key && keybind_to_set == 2 ? "Press a key..." : (std::string("Key: ") + (char)flight_key).c_str())) {
+                waiting_for_key = true;
+                keybind_to_set = 2;
+            }
+        }
+    
+        if (ImGui::CollapsingHeader("Eagle")) {
+            if (ImGui::Checkbox("Enable Eagle", &eagle_enabled)) {
+                emit("77");
+            }
+        }
+    
+        if (ImGui::CollapsingHeader("Sprint")) {
+            if (ImGui::Checkbox("Enable Sprint", &sprint_enabled)) {
+                emit("79");
+            }
+        }
+    
+        if (ImGui::CollapsingHeader("Velocty")) {
+            if (ImGui::Checkbox("Enable Velocity", &velo_enabled)) {
+                emit("73");
+            }
+            ImGui::SliderFloat("Hurt Time Required", &GUI::hurtTime, 0.0, 1.0, "%.1f");
+            ImGui::SliderFloat("Velocity X", &GUI::x1, 0.0, 2, "%.1f");
+            ImGui::SliderFloat("Velocity Y", &GUI::y1, 0.0, 2, "%.1f");
+            ImGui::SliderFloat("Velocity Z", &GUI::z1, 0.0, 2, "%.1f");
 
-        ImGui::Text("Mod Settings:");
 
-        if (ImGui::Checkbox("Enable Fastplace", &fastplace_enabled)) {
-            emit("71");
-        }
-        ImGui::SliderInt("Fastplace Delay", &GUI::newdelay, 1, 10, "Delay: %d");
-        
-        ImGui::SameLine();
-        if (ImGui::Button(waiting_for_key && keybind_to_set == 1 ? "Press a key..." : (std::string("Key: ") + (char)fastplace_key).c_str())) {
-            waiting_for_key = true;
-            keybind_to_set = 1;
-        }
 
-        if (ImGui::Checkbox("Enable Flight", &flight_enabled)) {
-            emit("96");
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(waiting_for_key && keybind_to_set == 2 ? "Press a key..." : (std::string("Key: ") + (char)flight_key).c_str())) {
-            waiting_for_key = true;
-            keybind_to_set = 2;
-        }
+
+        }           
 
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
-
-        if(ImGui::Checkbox("Enable Step", &step_enabled)){
-            emit("80");
-        }
-        ImGui::SliderFloat("Step Height", &GUI::newHeight, 0.6f, 10.0f, "%.3f");
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        if(ImGui::Checkbox("Enable Eagle", &eagle_enabled)){
-            emit("77");
-        }
-        ImGui::SliderFloat("Down Amount", &GUI::downVec, 1.0, 5.0, "%.1f");
-
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        if(ImGui::Checkbox("Enable Sprint", &sprint_enabled)){
-            emit("79");
-           
-        }
-
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        // Color picker widget
+    
         static ImVec4 color = ImVec4(0.2f, 0.3f, 0.8f, 1.0f);  // Default accent color
         ImGui::ColorEdit3("Accent Color", (float*)&color);
-
-        // Apply the selected color to accent elements
+    
         ImGuiStyle& style = ImGui::GetStyle();
-        
-        // Change only the accent colors (buttons, sliders, etc.)
-        style.Colors[ImGuiCol_Button] = ImVec4(color.x, color.y, color.z, 1.0f);  // Button background
-        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(color.x * 1.1f, color.y * 1.1f, color.z * 1.1f, 1.0f); // Hovered button
-        style.Colors[ImGuiCol_ButtonActive] = ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f); // Active button
-        style.Colors[ImGuiCol_SliderGrab] = ImVec4(color.x, color.y, color.z, 1.0f); // Slider grab color
-        style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(color.x * 1.1f, color.y * 1.1f, color.z * 1.1f, 1.0f); // Active slider color
-        style.Colors[ImGuiCol_CheckMark] = ImVec4(color.x, color.y, color.z, 1.0f); // Checkbox checkmark color
-
+        style.Colors[ImGuiCol_Button] = ImVec4(color.x, color.y, color.z, 1.0f);
+        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(color.x * 1.1f, color.y * 1.1f, color.z * 1.1f, 1.0f);
+        style.Colors[ImGuiCol_ButtonActive] = ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f);
+        style.Colors[ImGuiCol_SliderGrab] = ImVec4(color.x, color.y, color.z, 1.0f);
+        style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(color.x * 1.1f, color.y * 1.1f, color.z * 1.1f, 1.0f);
+        style.Colors[ImGuiCol_CheckMark] = ImVec4(color.x, color.y, color.z, 1.0f);
+    
         if (ImGui::Button("Apply Settings", ImVec2(150, 30))) {
             // Placeholder for additional actions
         }
     }
     ImGui::End();
+    
 
     ImGui::EndFrame();
     ImGui::Render();

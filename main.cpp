@@ -29,13 +29,12 @@ void setup_wndproc() {
 void client_main(HMODULE mod) {
     Fly* fly_mod = new Fly("Flyhack", 'F');
     Fastplace* fastplace_mod = new Fastplace(std::string("Fastplace"), 'G');
-    Step* step_mod = new Step("Step", 'P');
     Eagle* eagle_mod = new Eagle("Eagle", 'M');
-
+    Velocity* velocity_mod = new Velocity("Velocity", 'I');
     //fly_mod->toggle();
+    mods.push_back(velocity_mod);
     mods.push_back(fly_mod);
     mods.push_back(fastplace_mod);
-    mods.push_back(step_mod);    
     mods.push_back(eagle_mod);
 
     if (Hook::init())

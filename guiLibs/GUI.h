@@ -17,6 +17,13 @@ namespace GUI
 	static float downVec = 1.5;
 	static int newdelay = 1;
 	static float newHeight = 0.6;
+
+
+	static float x1 = 0.4;
+	static float y1 = 0.4;
+	static float z1 = 0.4;
+	static float hurtTime = 0;
+
 	bool init(HWND wnd_handle);
 	void shutdown();
 

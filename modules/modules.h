@@ -82,6 +82,7 @@ class Velocity : public  Module{
     double x;
     double y;
     double z;
+    int hurtTimeDelay = 0;
 
     void init();
     void toggle();
