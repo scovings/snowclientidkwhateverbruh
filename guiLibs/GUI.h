@@ -13,6 +13,8 @@ namespace GUI
 	//
 	// Management functions
 	//
+	static bool blatentMod = false;
+	static float downVec = 1.5;
 	static int newdelay = 1;
 	static float newHeight = 0.6;
 	bool init(HWND wnd_handle);

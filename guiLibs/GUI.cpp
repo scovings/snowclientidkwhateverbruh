@@ -11,6 +11,8 @@ static int flight_key = 'F';
 static bool fastplace_enabled = false;
 static bool step_enabled = false;
 static bool flight_enabled = false;
+static bool eagle_enabled = false;
+static bool sprint_enabled = false;
 //fixed that shit
 void BlockGameInput(bool block)
 {
@@ -61,10 +63,20 @@ void GUI::shutdown()
     is_init = false;
 }
 
-Fastplace* fastplace_mod = new Fastplace("Fastplace", 'G');
+
+Fly* fly_mod = new Fly("Flyhack", 'F');
+Fastplace* fastplace_mod = new Fastplace(std::string("Fastplace"), 'G');
 Step* step_mod = new Step("Step", 'P');
+Eagle* eagle_mod = new Eagle("Eagle", 'M');
 void GUI::draw()
 {
+
+    flight_enabled = fly_mod->enabled;
+    eagle_enabled = eagle_mod->enabled;
+    fastplace_enabled = fastplace_mod->enabled;
+
+
+
     if (!do_draw)
         return;
 
@@ -136,8 +148,40 @@ void GUI::draw()
         ImGui::Separator();
         ImGui::Spacing();
 
-        static ImVec4 color = ImVec4(0.2f, 0.3f, 0.8f, 1.0f);
-        ImGui::ColorEdit3("Theme Color", (float*)&color);
+        if(ImGui::Checkbox("Enable Eagle", &eagle_enabled)){
+            emit("77");
+        }
+        ImGui::SliderFloat("Down Amount", &GUI::downVec, 1.0, 5.0, "%.1f");
+
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if(ImGui::Checkbox("Enable Sprint", &sprint_enabled)){
+            emit("79");
+           
+        }
+
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        // Color picker widget
+        static ImVec4 color = ImVec4(0.2f, 0.3f, 0.8f, 1.0f);  // Default accent color
+        ImGui::ColorEdit3("Accent Color", (float*)&color);
+
+        // Apply the selected color to accent elements
+        ImGuiStyle& style = ImGui::GetStyle();
+        
+        // Change only the accent colors (buttons, sliders, etc.)
+        style.Colors[ImGuiCol_Button] = ImVec4(color.x, color.y, color.z, 1.0f);  // Button background
+        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(color.x * 1.1f, color.y * 1.1f, color.z * 1.1f, 1.0f); // Hovered button
+        style.Colors[ImGuiCol_ButtonActive] = ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f); // Active button
+        style.Colors[ImGuiCol_SliderGrab] = ImVec4(color.x, color.y, color.z, 1.0f); // Slider grab color
+        style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(color.x * 1.1f, color.y * 1.1f, color.z * 1.1f, 1.0f); // Active slider color
+        style.Colors[ImGuiCol_CheckMark] = ImVec4(color.x, color.y, color.z, 1.0f); // Checkbox checkmark color
 
         if (ImGui::Button("Apply Settings", ImVec2(150, 30))) {
             // Placeholder for additional actions
@@ -149,6 +193,7 @@ void GUI::draw()
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
+
 
 bool GUI::getIsInit()
 {
