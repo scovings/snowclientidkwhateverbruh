@@ -144,7 +144,8 @@ void GUI::draw()
     
         if (ImGui::CollapsingHeader("Eagle")) {
             if (ImGui::Checkbox("Enable Eagle", &eagle_enabled)) {
-                emit("77");
+                emit("80");
+
             }
         }
     
