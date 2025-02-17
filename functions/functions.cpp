@@ -417,6 +417,21 @@ bool isSprinting(JNIEnv* env, jobject entity){
 	
 }
 
+
+bool isInGui(JNIEnv* env, jobject minecraft){
+	if(minecraft == NULL){
+		return 0;
+	}
+
+    
+	jclass klass = env->GetObjectClass(minecraft);
+	jfieldID field = env->GetFieldID(klass, "m", "()Z");
+	bool result = env->GetBooleanField(minecraft, field);
+	env->DeleteLocalRef(klass);
+	return result;
+	
+}
+
 void stepHeight(JNIEnv* env,jobject entity, float newHeight){
 
 

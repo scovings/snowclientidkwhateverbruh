@@ -8,6 +8,9 @@
 #include <string>
 #include <thread>
 #include "Vars.h"
+
+
+
 class EventBus {
 public:
     using EventCallback = std::function<void()>;
@@ -45,13 +48,13 @@ void checkForKeyPress()
                 if(DEBUG){
                     std::cout << "[D] Key " + std::to_string(key.first) + "pressed!" << std::endl;
                 }
-
-                emit(std::to_string(key.first));
+                    emit(std::to_string(key.first));
+                    
+                }
             }
         }
 
     
-}
 
     // Subscribe a free function or static member function
     void subscribe(const std::string& eventName, EventCallback callback) {
