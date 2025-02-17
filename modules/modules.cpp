@@ -131,7 +131,9 @@ void Eagle::onClientTick(){
             set_sneaking(env, true);
         }else{
             //dont sneak
-            set_sneaking(env, false);
+            if(!GetAsyncKeyState(VK_SHIFT)){
+                set_sneaking(env, false);
+            }
         }
         env->DeleteLocalRef(thePlayer);
     }

@@ -404,6 +404,19 @@ bool isBurning(JNIEnv* env, jobject entity){
 }
 
 
+
+bool isSprinting(JNIEnv* env, jobject entity){
+	if(entity == NULL){
+		return 0;
+	}
+	jclass klass = env->GetObjectClass(entity);
+	jfieldID field = env->GetFieldID(klass, "aw", "()Z");
+	bool result = env->GetBooleanField(entity, field);
+	env->DeleteLocalRef(klass);
+	return result;
+	
+}
+
 void stepHeight(JNIEnv* env,jobject entity, float newHeight){
 
 

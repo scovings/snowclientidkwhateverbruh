@@ -40,6 +40,8 @@ extern void set_sprinting(JNIEnv* env, jobject entity, bool flag);
 
 extern bool onGround(JNIEnv* env, jobject entity);
 extern bool isSneaking(JNIEnv* env, jobject entity);
+extern bool isSprinting(JNIEnv* env, jobject entity);
+
 extern bool isBurning(JNIEnv* env, jobject entity);
 
 extern void stepHeight(JNIEnv* env,jobject entity, float newHight);
