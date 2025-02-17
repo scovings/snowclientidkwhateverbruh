@@ -1,4 +1,3 @@
-
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import os  # For file validation
@@ -8,6 +7,7 @@ import customtkinter as ctk
 import psutil  # For process list
 import ctypes
 from ctypes import wintypes
+
 # Define necessary constants
 PROCESS_CREATE_THREAD = 0x0002
 PROCESS_QUERY_INFORMATION = 0x0400
@@ -53,8 +53,14 @@ CloseHandle.restype = wintypes.BOOL
 # Global variables
 recent_dlls = []
 
+def get_pid_by_name(process_name):
+    """Returns the first process ID matching the given process name."""
+    for process in psutil.process_iter(attrs=['pid', 'name']):
+        if process.info['name'].lower() == process_name.lower():
+            return process.info['pid']
+    return None  # No matching process found
+
 def inject_dll(process_id, dll_path):
-    # Open the target process
     process_handle = OpenProcess(
         PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ,
         False,
@@ -63,7 +69,6 @@ def inject_dll(process_id, dll_path):
     if not process_handle:
         return f"Failed to open target process! Error: {ctypes.get_last_error()}"
 
-    # Allocate memory in the target process
     allocated_memory = VirtualAllocEx(
         process_handle,
         None,
@@ -75,7 +80,6 @@ def inject_dll(process_id, dll_path):
         CloseHandle(process_handle)
         return f"Failed to allocate memory in target process! Error: {ctypes.get_last_error()}"
 
-    # Write the DLL path to the allocated memory
     written = ctypes.c_size_t(0)
     write_result = WriteProcessMemory(
         process_handle,
@@ -88,13 +92,11 @@ def inject_dll(process_id, dll_path):
         CloseHandle(process_handle)
         return f"Failed to write DLL path to target process! Error: {ctypes.get_last_error()}"
 
-    # Get the address of LoadLibraryA in kernel32.dll
     load_library_address = GetProcAddress(GetModuleHandle(b"kernel32.dll"), b"LoadLibraryA")
     if not load_library_address:
         CloseHandle(process_handle)
         return f"Failed to get address of LoadLibraryA! Error: {ctypes.get_last_error()}"
 
-    # Create a remote thread in the target process to load the DLL
     thread_handle = CreateRemoteThread(
         process_handle,
         None,
@@ -108,7 +110,6 @@ def inject_dll(process_id, dll_path):
         CloseHandle(process_handle)
         return f"Failed to create remote thread in target process! Error: {ctypes.get_last_error()}"
 
-    # Clean up
     CloseHandle(thread_handle)
     CloseHandle(process_handle)
     return "DLL injected successfully!"
@@ -125,52 +126,44 @@ def add_to_recent_dlls(dll_path):
         recent_dlls.append(dll_path)
         recent_dlls.add_command(label=dll_path, command=lambda p=dll_path: dll_path_entry.insert(0, p))
 
-def show_process_id_help():
-    help_text = (
-        "How to get the Process ID:\n\n"
-        "1. Open Task Manager (Ctrl + Shift + Esc).\n"
-        "2. Go to the 'Details' tab.\n"
-        "3. Find the process you want to inject into.\n"
-        "4. Note the 'PID' column value.\n\n"
-        "Alternatively, you can use tools like Process Hacker or Process Explorer."
-    )
-    messagebox.showinfo("Process ID Help", help_text)
-
 def start_injection():
-    process_id = process_id_entry.get()
+    process_name = process_id_entry.get()  # Now used for process name input
     dll_path = dll_path_entry.get()
 
-    if not process_id.isdigit():
-        status_var.set("Error: Process ID must be a number!")
+    if not process_name:
+        status_var.set("Error: Process name cannot be empty!")
+        return
+
+    process_id = get_pid_by_name(process_name)
+    if not process_id:
+        status_var.set(f"Error: No process named '{process_name}' found!")
         return
 
     if not dll_path or not os.path.exists(dll_path):
         status_var.set("Error: Please select a valid DLL file!")
         return
 
-    result = inject_dll(int(process_id), dll_path)
+    result = inject_dll(process_id, dll_path)
     status_var.set(result)
 
 # Set up the CustomTkinter theme
-ctk.set_appearance_mode("System")  # System, Light, or Dark
-ctk.set_default_color_theme("blue")  # Themes: blue, green, dark-blue
+ctk.set_appearance_mode("System")
+ctk.set_default_color_theme("blue")
 
 # Create the main window
 root = ctk.CTk()
 root.title("DLL Injector")
-root.geometry("500x400")  # Slightly taller to accommodate spacing
+root.geometry("500x400")
 root.resizable(False, False)
 
 # Create a main frame
 main_frame = ctk.CTkFrame(root)
 main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-# Process ID
-ctk.CTkLabel(main_frame, text="Process ID:").grid(row=0, column=0, sticky="ew", pady=(10, 5))
-process_id_entry = ctk.CTkEntry(main_frame, width=300, placeholder_text="Enter Process ID")
+# Process Name (Instead of Process ID)
+ctk.CTkLabel(main_frame, text="Process Name:").grid(row=0, column=0, sticky="ew", pady=(10, 5))
+process_id_entry = ctk.CTkEntry(main_frame, width=300, placeholder_text="Enter Process Name")  # Updated placeholder
 process_id_entry.grid(row=0, column=1, sticky="ew", pady=(10, 5))
-help_button = ctk.CTkButton(main_frame, text="?", width=30, command=show_process_id_help)
-help_button.grid(row=0, column=2, sticky="ew", pady=(10, 5))
 
 # DLL Path
 ctk.CTkLabel(main_frame, text="DLL Path:").grid(row=1, column=0, sticky="ew", pady=(10, 5))
