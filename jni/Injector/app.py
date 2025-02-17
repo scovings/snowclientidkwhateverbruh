@@ -1,11 +1,13 @@
-import ctypes
-from ctypes import wintypes
+
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import os  # For file validation
+os.system("pip install psutil customtkinter")
+
 import customtkinter as ctk
 import psutil  # For process list
-import os  # For file validation
-
+import ctypes
+from ctypes import wintypes
 # Define necessary constants
 PROCESS_CREATE_THREAD = 0x0002
 PROCESS_QUERY_INFORMATION = 0x0400
@@ -121,7 +123,7 @@ def browse_dll():
 def add_to_recent_dlls(dll_path):
     if dll_path not in recent_dlls:
         recent_dlls.append(dll_path)
-        recent_dlls_menu.add_command(label=dll_path, command=lambda p=dll_path: dll_path_entry.insert(0, p))
+        recent_dlls.add_command(label=dll_path, command=lambda p=dll_path: dll_path_entry.insert(0, p))
 
 def show_process_id_help():
     help_text = (

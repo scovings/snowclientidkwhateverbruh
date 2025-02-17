@@ -7,5 +7,9 @@ g++ -shared -o build/DOWNPOUR.dll dllmain.cpp main.cpp functions/functions.cpp m
 
 @echo off
 echo BUILD SUCCESSFUL
+
+cd jni
+cd Injector
+python3 app.py
 timeout /t 5 /nobreak >nul
 
