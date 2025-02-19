@@ -45,7 +45,7 @@ void client_main(HMODULE mod) {
     while (true) {
         Sleep(10);
         emit("on-tick");
-        CheckForKeys();
+        StartMessageLoop();
         if (GetAsyncKeyState(VK_END)) {
             break;
         }

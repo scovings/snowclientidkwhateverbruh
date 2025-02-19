@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <iostream>
@@ -7,10 +6,9 @@
 #include <vector>
 #include <string>
 #include <thread>
+#include <windows.h>
 #include "Vars.h"
-
-
-
+#include <tchar.h>
 class EventBus {
 public:
     using EventCallback = std::function<void()>;
@@ -19,42 +17,6 @@ public:
         static EventBus instance;
         return instance;
     }
-
-
-void checkForKeyPress()
-{
-    std::map<int, std::string> keyMap;
-    for (int i = 'A'; i <= 'Z'; ++i)
-    {
-        keyMap[i] = std::string(1, (char)i);
-    }
-    keyMap[VK_NUMPAD0] = "NUMPAD 0";
-    keyMap[VK_NUMPAD1] = "NUMPAD 1";
-    keyMap[VK_NUMPAD2] = "NUMPAD 2";
-    keyMap[VK_NUMPAD3] = "NUMPAD 3";
-    keyMap[VK_NUMPAD4] = "NUMPAD 4";
-    keyMap[VK_NUMPAD5] = "NUMPAD 5";
-    keyMap[VK_NUMPAD6] = "NUMPAD 6";
-    keyMap[VK_NUMPAD7] = "NUMPAD 7";
-    keyMap[VK_NUMPAD8] = "NUMPAD 8";
-    keyMap[VK_NUMPAD9] = "NUMPAD 9";
-    
-        for (const auto& key : keyMap)
-        {
-
-            if (GetAsyncKeyState(key.first) & 1)
-            {
-                
-                if(DEBUG){
-                    std::cout << "[D] Key " + std::to_string(key.first) + "pressed!" << std::endl;
-                }
-                    emit(std::to_string(key.first));
-                    
-                }
-            }
-        }
-
-    
 
     // Subscribe a free function or static member function
     void subscribe(const std::string& eventName, EventCallback callback) {
@@ -98,7 +60,49 @@ inline void subscribe(const std::string& eventName, void (ObjectType::*memberFun
 inline void emit(const std::string& eventName) {
     EventBus::getInstance().emit(eventName);
 }
-// helper for checking with the keys
-inline void CheckForKeys(){
-    EventBus::getInstance().checkForKeyPress();
+
+// Window procedure to handle key events
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
+        case WM_KEYDOWN:
+            // Emit an event when a key is pressed
+            emit(std::to_string(static_cast<int>(wParam)));
+            if (DEBUG) {
+                std::cout << "[D] Key " << static_cast<int>(wParam) << " pressed!" << std::endl;
+            }
+            break;
+
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+
+        default:
+            return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+    return 0;
+}
+
+// Function to create a window and start the message loop
+void CreateMessageLoop() {
+    WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("EventBusWindowClass"), NULL };
+    RegisterClassEx(&wc);
+
+    HWND hwnd = CreateWindow(wc.lpszClassName, _T("EventBus Window"), WS_OVERLAPPEDWINDOW, 100, 100, 300, 200, NULL, NULL, wc.hInstance, NULL);
+
+    ShowWindow(hwnd, SW_SHOWDEFAULT);
+    UpdateWindow(hwnd);
+
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    UnregisterClass(wc.lpszClassName, wc.hInstance);
+}
+
+// Start the message loop in a separate thread
+inline void StartMessageLoop() {
+    std::thread messageLoopThread(CreateMessageLoop);
+    messageLoopThread.detach();
 }
