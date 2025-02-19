@@ -12,7 +12,7 @@ void Fly::init() {
 void Fly::toggle() {
     enabled = !enabled;
     if (enabled) {
-        printf("[M] Fly Mod Enabled!\n");
+        std::cout << "[M] Fly Mod Enabled!" << std::endl;
         onEnable();
     } else {
         printf("[M] Fly Mod Disabled!\n");

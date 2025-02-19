@@ -1,102 +1,128 @@
-#include "GUI.h"
 #include "../modules/modules.h"
 #include <Windows.h>
+#include <algorithm>
+#include "consoleGUI.h"
 
-static bool is_init{};
-static bool do_draw{true};
-static bool waiting_for_key = false;
-static int keybind_to_set = 0;
-static int fastplace_key = 'G';
-static int flight_key = 'F';
-static bool fastplace_enabled = false;
-static bool flight_enabled = false;
-static bool eagle_enabled = false;
-static bool sprint_enabled = false;
-static bool velo_enabled = false;
+namespace {
+    // Color operation helpers
+    ImVec4 operator*(const ImVec4& color, float factor) {
+        return ImVec4(
+            std::clamp(color.x * factor, 0.0f, 1.0f),
+            std::clamp(color.y * factor, 0.0f, 1.0f),
+            std::clamp(color.z * factor, 0.0f, 1.0f),
+            color.w
+        );
+    }
 
-//fixed that shit
-void BlockGameInput(bool block)
-{
-    ShowCursor(block);
-    if (block)
-    {
-        ClipCursor(NULL);
-        SetCapture(NULL);
+    ImVec4 ColorMultiply(const ImVec4& a, const ImVec4& b) {
+        return ImVec4(
+            a.x * b.x,
+            a.y * b.y,
+            a.z * b.z,
+            a.w * b.w
+        );
     }
 }
 
-bool GUI::init(HWND wnd_handle)
-{
-    if (is_init)
-        return false;
+#define imgui ImGui
+
+
+
+void GUI::BlockGameInput(bool block) {
+    ShowCursor(block);
+    if (block) {
+        ClipCursor(nullptr);
+        SetCapture(nullptr);
+    }
+}
+
+bool GUI::init(HWND wnd_handle) {
+    if (is_init) return false;
 
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    
+    // Enhanced style settings
     ImGui::StyleColorsDark();
-
     ImGuiStyle& style = ImGui::GetStyle();
-    style.FrameRounding = 10.0f;
+
+    // Modern styling parameters
+    style.WindowPadding = ImVec2(15, 15);
+    style.FramePadding = ImVec2(12, 8);
+    style.ItemSpacing = ImVec2(12, 10);
+    style.ItemInnerSpacing = ImVec2(8, 6);
+    style.IndentSpacing = 22.0f;
+
     style.WindowRounding = 12.0f;
+    style.ChildRounding = 10.0f;
+    style.FrameRounding = 8.0f;
+    style.PopupRounding = 10.0f;
+    style.ScrollbarRounding = 8.0f;
     style.GrabRounding = 6.0f;
-    style.WindowPadding = ImVec2(16, 16);
-    style.FramePadding = ImVec2(10, 6);
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.15f, 1.0f);
-    style.Colors[ImGuiCol_Button] = ImVec4(0.25f, 0.28f, 0.35f, 1.0f);
-    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.35f, 0.38f, 0.45f, 1.0f);
-    style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.45f, 0.48f, 0.55f, 1.0f);
+    style.TabRounding = 8.0f;
+
+    style.WindowBorderSize = 1.5f;
+    style.ChildBorderSize = 1.2f;
+    style.PopupBorderSize = 1.2f;
+    style.FrameBorderSize = 1.0f;
+
+    // Base color scheme
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.09f, 0.09f, 0.11f, 1.00f);
+    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.12f, 0.12f, 0.15f, 1.00f);
+    style.Colors[ImGuiCol_Border] = ImVec4(0.18f, 0.18f, 0.22f, 1.00f);
+    style.Colors[ImGuiCol_Text] = ImVec4(0.98f, 0.98f, 0.99f, 1.00f);
+    
+    // Accent color system
+    GUI::accent_color = ImVec4(0.38f, 0.61f, 0.89f, 1.00f);
+    UpdateThemeColors();
 
     ImGui_ImplWin32_Init(wnd_handle);
     ImGui_ImplOpenGL3_Init();
 
+    RedirectConsole();
+    std::cout << "[+] Console Redirected to ImGui!\n";
+
     is_init = true;
-    return false;
+    return true;
 }
 
-void GUI::shutdown()
-{
-    if (!is_init)
-        return;
-
+void GUI::shutdown() {
+    if (!is_init) return;
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
-
     is_init = false;
 }
-
 
 Fly* fly_mod = new Fly("Flyhack", 'F');
 Fastplace* fastplace_mod = new Fastplace(std::string("Fastplace"), 'G');
 Eagle* eagle_mod = new Eagle("Eagle", 'M');
 Velocity* velocity_mod = new Velocity("Velocity", 'I');
-void GUI::draw()
-{
 
-    flight_enabled = fly_mod->enabled;
-    eagle_enabled = eagle_mod->enabled;
-    fastplace_enabled = fastplace_mod->enabled;
-    velo_enabled = velocity_mod->enabled;
+void GUI::draw() {
 
+// Switched assignments
+    fly_mod->enabled = flight_enabled;         // Now sets fly_mod->enabled to flight_enabled
+    eagle_mod->enabled = eagle_enabled;        // Now sets eagle_mod->enabled to eagle_enabled
+    fastplace_mod->enabled = fastplace_enabled; // Now sets fastplace_mod->enabled to fastplace_enabled
+    velocity_mod->enabled = velo_enabled;      
 
-    if (!do_draw)
-        return;
-
+    if (!do_draw) return;
     BlockGameInput(true);
 
+    // Update module parameters
     fastplace_mod->max_delay = GUI::newdelay;
     velocity_mod->x = GUI::x1;
     velocity_mod->y = GUI::y1;
     velocity_mod->z = GUI::z1;
     velocity_mod->hurtTimeDelay = GUI::hurtTime;
 
-
+    // Keybind handling
     if (waiting_for_key) {
         for (int key = 1; key < 256; key++) {
             if (GetAsyncKeyState(key) & 0x8000) {
-                if (keybind_to_set == 1)
-                    fastplace_key = key;
-                else if (keybind_to_set == 2)
-                    flight_key = key;
+                if (keybind_to_set == 1) fastplace_key = key;
+                else if (keybind_to_set == 2) flight_key = key;
                 waiting_for_key = false;
                 keybind_to_set = 0;
                 break;
@@ -108,106 +134,161 @@ void GUI::draw()
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("DOWNPOAR B0.1", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
+    // Main Window
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+    ImGui::Begin("DOWNPOUR v1 - _snow_x", nullptr, 
+        ImGuiWindowFlags_NoCollapse | 
+        ImGuiWindowFlags_NoScrollbar |
+        ImGuiWindowFlags_NoResize
+    );
     {
         if (GetAsyncKeyState(VK_ESCAPE) & 1) {
             do_draw = false;
             BlockGameInput(false);
         }
-    
-        ImGui::Text("Welcome to DOWNPOAR!");
+
+        // Header Section
+        ImGui::TextColored(accent_color, "DOWNPOUR v1");
         ImGui::Separator();
-        ImGui::Spacing();
-    
-        if (ImGui::CollapsingHeader("Fastplace")) {
-            if (ImGui::Checkbox("Enable Fastplace", &fastplace_enabled)) {
-                emit("71");
-            }
-            ImGui::SliderInt("Fastplace Delay", &GUI::newdelay, 1, 10, "Delay: %d");
+        
+        // Tabs
+        ImGui::BeginChild("Tabs", ImVec2(0, 40), true);
+        {
+            const ImVec2 button_size = ImVec2(ImGui::GetWindowWidth() * 0.2f, 30);
+            
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5, 0));
+            if (ImGui::Button("Movement", button_size)) GUI::tab = 0;
             ImGui::SameLine();
-            if (ImGui::Button(waiting_for_key && keybind_to_set == 1 ? "Press a key..." : (std::string("Key: ") + (char)fastplace_key).c_str())) {
-                waiting_for_key = true;
-                keybind_to_set = 1;
-            }
-        }
-    
-        if (ImGui::CollapsingHeader("Flight")) {
-            if (ImGui::Checkbox("Enable Flight", &flight_enabled)) {
-                emit("96");
-            }
+            if (ImGui::Button("Combat", button_size)) GUI::tab = 1;
             ImGui::SameLine();
-            if (ImGui::Button(waiting_for_key && keybind_to_set == 2 ? "Press a key..." : (std::string("Key: ") + (char)flight_key).c_str())) {
-                waiting_for_key = true;
-                keybind_to_set = 2;
+            if (ImGui::Button("Visuals", button_size)) GUI::tab = 2;
+            ImGui::SameLine();
+            if (ImGui::Button("Settings", button_size)) GUI::tab = 3;
+            ImGui::PopStyleVar();
+        }
+        ImGui::EndChild();
+
+        // Content Area
+        ImGui::BeginChild("Content", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true);
+        {
+            // Movement Tab
+            if (GUI::tab == 0) {
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
+                
+                ImGui::BeginChild("Flight", ImVec2(0, 120), true);
+                {
+                    ImGui::Checkbox("Enable Flight", &flight_enabled);
+                    ImGui::SameLine();
+                    KeybindButton("Key##Flight", 2);
+                    ImGui::SliderFloat("Speed", &GUI::x1, 0.1f, 5.0f, "%.1f");
+                }
+                ImGui::EndChild();
+
+                ImGui::BeginChild("Velocity", ImVec2(0, 180), true);
+                {
+                    ImGui::Checkbox("Enable Velocity", &velo_enabled);
+                    ImGui::SliderFloat("Hurt Time", &GUI::hurtTime, 0.0f, 1.0f, "%.1f");
+                    ImGui::SliderFloat("X Axis", &GUI::x1, 0.0f, 2.0f, "%.1f");
+                    ImGui::SliderFloat("Y Axis", &GUI::y1, 0.0f, 2.0f, "%.1f");
+                    ImGui::SliderFloat("Z Axis", &GUI::z1, 0.0f, 2.0f, "%.1f");
+                }
+                ImGui::EndChild();
+
+                ImGui::PopStyleVar();
+            }
+
+            // Combat Tab
+            else if (GUI::tab == 1) {
+                ImGui::BeginChild("Fastplace", ImVec2(0, 100), true);
+                {
+                    ImGui::Checkbox("Enable Fastplace", &fastplace_enabled);
+                    ImGui::SameLine();
+                    KeybindButton("Key##Fastplace", 1);
+                    ImGui::SliderInt("Delay", &GUI::newdelay, 1, 10, "%dms");
+                }
+                ImGui::EndChild();
+
+                ImGui::BeginChild("Eagle", ImVec2(0, 80), true);
+                {
+                    ImGui::Checkbox("Enable Eagle", &eagle_enabled);
+                }
+                ImGui::EndChild();
+            }
+
+            // Settings Tab
+            else if (GUI::tab == 3) {
+                ImGui::BeginChild("Theme", ImVec2(0, 100), true);
+                {
+                    ImGui::Text("Accent Color");
+                    ImGui::SetNextItemWidth(150);
+                    if (ImGui::ColorEdit3("##AccentColor", (float*)&accent_color, 
+                        ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
+                        UpdateThemeColors();
+                    }
+                    
+                    ImGui::SameLine();
+                    if (ImGui::Button("Reset Defaults", ImVec2(120, 0))) {
+                        accent_color = ImVec4(0.38f, 0.61f, 0.89f, 1.00f);
+                        UpdateThemeColors();
+                    }
+                }
+                ImGui::EndChild();
             }
         }
-    
-        if (ImGui::CollapsingHeader("Eagle")) {
-            if (ImGui::Checkbox("Enable Eagle", &eagle_enabled)) {
-                emit("80");
+        ImGui::EndChild();
 
-            }
-        }
-    
-        if (ImGui::CollapsingHeader("Sprint")) {
-            if (ImGui::Checkbox("Enable Sprint", &sprint_enabled)) {
-                emit("79");
-            }
-        }
-    
-        if (ImGui::CollapsingHeader("Velocty")) {
-            if (ImGui::Checkbox("Enable Velocity", &velo_enabled)) {
-                emit("73");
-            }
-            ImGui::SliderFloat("Hurt Time Required", &GUI::hurtTime, 0.0, 1.0, "%.1f");
-            ImGui::SliderFloat("Velocity X", &GUI::x1, 0.0, 2, "%.1f");
-            ImGui::SliderFloat("Velocity Y", &GUI::y1, 0.0, 2, "%.1f");
-            ImGui::SliderFloat("Velocity Z", &GUI::z1, 0.0, 2, "%.1f");
-
-
-
-
-        }           
-
-        ImGui::Spacing();
+        // Footer
         ImGui::Separator();
-        ImGui::Spacing();
-    
-        static ImVec4 color = ImVec4(0.2f, 0.3f, 0.8f, 1.0f);  // Default accent color
-        ImGui::ColorEdit3("Accent Color", (float*)&color);
-    
-        ImGuiStyle& style = ImGui::GetStyle();
-        style.Colors[ImGuiCol_Button] = ImVec4(color.x, color.y, color.z, 1.0f);
-        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(color.x * 1.1f, color.y * 1.1f, color.z * 1.1f, 1.0f);
-        style.Colors[ImGuiCol_ButtonActive] = ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f);
-        style.Colors[ImGuiCol_SliderGrab] = ImVec4(color.x, color.y, color.z, 1.0f);
-        style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(color.x * 1.1f, color.y * 1.1f, color.z * 1.1f, 1.0f);
-        style.Colors[ImGuiCol_CheckMark] = ImVec4(color.x, color.y, color.z, 1.0f);
-    
-        if (ImGui::Button("Apply Settings", ImVec2(150, 30))) {
-            // Placeholder for additional actions
-        }
+        ImGui::Text("Status: Active | FPS: %.1f", ImGui::GetIO().Framerate);
     }
     ImGui::End();
-    
 
-    ImGui::EndFrame();
+    ShowConsoleWindow();
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-
-bool GUI::getIsInit()
-{
-    return is_init;
+void GUI::KeybindButton(const char* label, int bind_id) {
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, accent_color * 0.8f);
+    
+    if (ImGui::Button(waiting_for_key && keybind_to_set == bind_id ? 
+        "Press key..." : label, ImVec2(80, 0))){
+        waiting_for_key = true;
+        keybind_to_set = bind_id;
+    }
+    
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar();
 }
 
-bool GUI::getDoDraw()
-{
-    return do_draw;
+void GUI::UpdateThemeColors() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    
+    // Button colors
+    style.Colors[ImGuiCol_Button] = accent_color * 0.8f;
+    style.Colors[ImGuiCol_ButtonHovered] = accent_color * 1.1f;
+    style.Colors[ImGuiCol_ButtonActive] = accent_color * 0.9f;
+    
+    // Slider colors
+    style.Colors[ImGuiCol_SliderGrab] = accent_color;
+    style.Colors[ImGuiCol_SliderGrabActive] = accent_color * 0.9f;
+    
+    // Checkmark colors
+    style.Colors[ImGuiCol_CheckMark] = accent_color;
+    
+    // Header colors
+    style.Colors[ImGuiCol_Header] = accent_color * 0.4f;
+    style.Colors[ImGuiCol_HeaderHovered] = accent_color * 0.5f;
+    style.Colors[ImGuiCol_HeaderActive] = accent_color * 0.6f;
+    
+    // Frame background
+    style.Colors[ImGuiCol_FrameBg] = ImVec4(0.15f, 0.15f, 0.17f, 1.00f);
+    style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.18f, 0.18f, 0.20f, 1.00f);
+    style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
 }
 
-void GUI::setDoDraw(bool new_value)
-{
-    do_draw = new_value;
-}
+bool GUI::getIsInit() { return is_init; }
+bool GUI::getDoDraw() { return do_draw; }
+void GUI::setDoDraw(bool new_value) { do_draw = new_value; }
