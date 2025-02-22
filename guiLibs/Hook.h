@@ -13,7 +13,7 @@ namespace Hook
 
 	bool init();
 	void shutdown();
-
+	void imguishut();
 	//
 	// Get functions
 	//

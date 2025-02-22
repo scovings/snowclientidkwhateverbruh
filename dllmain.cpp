@@ -1,9 +1,7 @@
 #include <Windows.h>
 #include <cstdio>
-
 FILE* pfile = nullptr;
 
-#include "jni/jni.h"
 #include "main.h"
 
 JavaVM* vm;
@@ -14,8 +12,7 @@ void init(HMODULE mod) {
     AllocConsole();
     freopen_s(&pfile, "CONOUT$", "w", stdout);
     printf("[+] DOWNPOUR INJECTED \n");
-
-    // INIT JNI
+/*    // INIT JNI
     jsize vmCount;
     if (JNI_GetCreatedJavaVMs(&vm, 1, &vmCount) != JNI_OK || vmCount == 0) {
         printf("[!] ERROR: Java VM not found!\n");
@@ -29,11 +26,21 @@ void init(HMODULE mod) {
         printf("[!] ERROR: Failed to set up JNI!\n");
         return;
     }
+*/
+    
+    JavaVM* jvm = nullptr;
+    JNI_GetCreatedJavaVMs(&jvm, 1, nullptr);
+    JNIEnv* env = nullptr;
+    jvm->AttachCurrentThread((void**)&env, nullptr);
+    jni::init();
+
+    jni::set_thread_env(env); //this is needed for every new thread that uses the lib
+
 
     if (env != nullptr) {
         printf("[+] JNI Hooked Successfully!\n");
         client_main(mod);
-
+        std::cout <<  "quick test";
         
     }
 

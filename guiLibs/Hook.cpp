@@ -143,3 +143,8 @@ BOOL __stdcall wglSwapBuffers(HDC hDc)
 
 	return origin_wglSwapBuffers(hDc);
 }
+
+
+void Hook::imguishut(){
+	GUI::shutdown();
+}

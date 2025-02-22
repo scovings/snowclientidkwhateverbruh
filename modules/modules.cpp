@@ -65,7 +65,7 @@ void Fastplace::onDisable(){
     }
 void Fastplace::onClientTick(){
     if(enabled){
-        set_right_click_delay(env, max_delay);// randomization later
+        set_right_click_delay(max_delay);// randomization later
   
 
     }
@@ -114,9 +114,9 @@ void Eagle::onClientTick(){
         //if sprinting, the user probably plans on jumping or falling, so dont prevent this by sneaking
 
         jobject thePlayer = get_player(env);
-        double x = getX(env, thePlayer);
-        double y = getY(env, thePlayer);
-        double z = getZ(env, thePlayer);
+        double x = getX();
+        double y = getY();
+        double z = getZ();
 
         //adjust for negative coords
         if(x < 0){
@@ -169,11 +169,11 @@ void Velocity::onClientTick(){
        
         jobject thePlayer = get_player(env);
 
-        if(getHurtTime(env, thePlayer) > hurtTimeDelay && !isBurning(env, thePlayer) && onGround(env, thePlayer)){
+        if(getHurtTime(env, thePlayer) > hurtTimeDelay && !isBurning(env, thePlayer)){
 
-            double x1 = getX(env, thePlayer);
-            double y1 = getY(env, thePlayer);
-            double z1 = getZ(env, thePlayer);
+            double x1 = getMotionX();
+            double y1 = getMotionY();
+            double z1 = getMotionZ();
 
             double newX = x1 * x;
             double newY = y1 * y;

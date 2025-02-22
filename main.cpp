@@ -2,28 +2,9 @@
 #include "functions/functions.h"
 #include "modules/modules.h"
 
-static WNDPROC window_proc;
 
-LRESULT CALLBACK h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    if (uMsg == WM_KEYDOWN) {
-        // pressed down
-    }
 
-    if (uMsg == WM_KEYUP) {
-        std::cout << "Key Press Ran " << (char)wParam << std::endl;
-        emit("105");
-    }
 
-    return CallWindowProc(window_proc, hWnd, uMsg, wParam, lParam);
-}
-
-void setup_wndproc() {
-    HWND window = FindWindowA(NULL, "LWJGL");
-    if (!window) {
-        printf("[!] ERROR: Window not found, failed to set up wndproc\n");
-    }
-    window_proc = (WNDPROC)SetWindowLongPtrA(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(h_WndProc));
-}
 
 
 void client_main(HMODULE mod) {
@@ -45,7 +26,7 @@ void client_main(HMODULE mod) {
     while (true) {
         Sleep(10);
         emit("on-tick");
-        StartMessageLoop();
+        CheckForKeys();
         if (GetAsyncKeyState(VK_END)) {
             break;
         }
@@ -56,8 +37,6 @@ void client_main(HMODULE mod) {
         delete mod;
     }
 
-    HWND window = FindWindowA(NULL, "Minecraft 1.8.9");
-    SetWindowLongPtrA(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(window_proc));
 
         // Cleanup ImGui
 
@@ -65,6 +44,8 @@ void client_main(HMODULE mod) {
     // Destroy the GLFW window and terminate GLFW
 
 
+    jni::shutdown();
+    Hook::imguishut();
     printf("[-] Client Shutdown Executed!\n");
     FreeConsole();
     FreeLibraryAndExitThread(mod, 0);

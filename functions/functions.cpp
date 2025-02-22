@@ -1,5 +1,6 @@
 #include "functions.h"
 #include <fstream>
+#include "../mappings.hpp"
 void mc_thePlayer_jump(JNIEnv* env){
     jclass minecraftClass = env->FindClass("ave");
     jmethodID getMinecraft = env->GetStaticMethodID(minecraftClass, "A", "()Lave;");
@@ -27,23 +28,17 @@ void mc_thePlayer_jump(JNIEnv* env){
 
 
 
-void set_right_click_delay(JNIEnv* env, int max){
+void set_right_click_delay(int max){
 	//if the delay timer is above the max entered, set it to the second var
 	//mc.rightClickDelayTimer = 0; - the var is found in the minecraft main class
 	//obf name = ap, is an int
 
-    jclass minecraftClass = env->FindClass("ave");
-    jmethodID getMinecraft = env->GetStaticMethodID(minecraftClass, "A", "()Lave;");
-    jobject mc_instance = env->CallStaticObjectMethod(minecraftClass, getMinecraft);
+   maps::Minecraft minecraft{};
+   maps::Minecraft theMinecraft = minecraft.theMinecraft.get();
 
-	jfieldID field1 = env->GetFieldID(minecraftClass, "ap", "I");
-	int delay = env->GetIntField(mc_instance, field1);
-	if(delay > max){
-		env->SetIntField(mc_instance, field1, max);
-	}
-    //free mem:
-	env->DeleteLocalRef(minecraftClass);
-	env->DeleteLocalRef(mc_instance);
+   theMinecraft.rightClickDelay = max;
+
+   
 }
 
 
@@ -104,35 +99,38 @@ jobject get_world(JNIEnv* env){
 
 
 
-double getX(JNIEnv* env, jobject entity){
-	if(entity == NULL){
-		return 0;
-	}
-	jclass klass = env->GetObjectClass(entity);
-	jfieldID field = env->GetFieldID(klass, "s", "D");
-	double result = env->GetDoubleField(entity, field);
-	env->DeleteLocalRef(klass);
-	return result;
+double getX(){
+    maps::Minecraft Minecraft{};
+    maps::EntityPlayerSP EntityPlayerSP{};
+
+    maps::Minecraft theMinecraft = Minecraft.theMinecraft.get();
+    maps::Minecraft g_theMinecraft = maps::Minecraft(theMinecraft, true);
+
+    maps::EntityPlayerSP thePlayer = theMinecraft.thePlayer.get();
+
+    return thePlayer.getX.get();
 }
-double getY(JNIEnv* env, jobject entity){
-	if(entity == NULL){
-		return 0;
-	}
-	jclass klass = env->GetObjectClass(entity);
-	jfieldID field = env->GetFieldID(klass, "t", "D");
-	double result = env->GetDoubleField(entity, field);
-	env->DeleteLocalRef(klass);
-	return result;
+double getY(){
+    maps::Minecraft Minecraft{};
+    maps::EntityPlayerSP EntityPlayerSP{};
+
+    maps::Minecraft theMinecraft = Minecraft.theMinecraft.get();
+    maps::Minecraft g_theMinecraft = maps::Minecraft(theMinecraft, true);
+
+    maps::EntityPlayerSP thePlayer = theMinecraft.thePlayer.get();
+
+    return thePlayer.getY.get();
 }
-double getZ(JNIEnv* env, jobject entity){
-	if(entity == NULL){
-		return 0;
-	}
-	jclass klass = env->GetObjectClass(entity);
-	jfieldID field = env->GetFieldID(klass, "u", "D");
-	double result = env->GetDoubleField(entity, field);
-	env->DeleteLocalRef(klass);
-	return result;
+double getZ(){
+    maps::Minecraft Minecraft{};
+    maps::EntityPlayerSP EntityPlayerSP{};
+
+    maps::Minecraft theMinecraft = Minecraft.theMinecraft.get();
+    maps::Minecraft g_theMinecraft = maps::Minecraft(theMinecraft, true);
+
+    maps::EntityPlayerSP thePlayer = theMinecraft.thePlayer.get();
+
+    return thePlayer.getZ.get();
 }
 
 
@@ -154,35 +152,38 @@ void setMotion(JNIEnv* env, jobject entity, double x, double y, double z){
 }
 
 
-double getMotionX(JNIEnv* env, jobject entity){
-	if(entity == NULL){
-		return 0;
-	}
-	jclass klass = env->GetObjectClass(entity);
-    jfieldID field = env->GetFieldID(klass, "v", "D");
-	double result = env->GetDoubleField(entity, field);
-	env->DeleteLocalRef(klass);
-	return result;
+double getMotionX(){
+    maps::Minecraft Minecraft{};
+    maps::EntityPlayerSP EntityPlayerSP{};
+
+    maps::Minecraft theMinecraft = Minecraft.theMinecraft.get();
+    maps::Minecraft g_theMinecraft = maps::Minecraft(theMinecraft, true);
+
+    maps::EntityPlayerSP thePlayer = theMinecraft.thePlayer.get();
+
+    return thePlayer.getMotionX.get();
 }
-double getMotionY(JNIEnv* env, jobject entity){
-	if(entity == NULL){
-		return 0;
-	}
-	jclass klass = env->GetObjectClass(entity);
-    jfieldID field = env->GetFieldID(klass, "w", "D");
-	double result = env->GetDoubleField(entity, field);
-	env->DeleteLocalRef(klass);
-	return result;
+double getMotionY(){
+    maps::Minecraft Minecraft{};
+    maps::EntityPlayerSP EntityPlayerSP{};
+
+    maps::Minecraft theMinecraft = Minecraft.theMinecraft.get();
+    maps::Minecraft g_theMinecraft = maps::Minecraft(theMinecraft, true);
+
+    maps::EntityPlayerSP thePlayer = theMinecraft.thePlayer.get();
+
+    return thePlayer.getMotionY.get();
 }
-double getMotionZ(JNIEnv* env, jobject entity){
-	if(entity == NULL){
-		return 0;
-	}
-	jclass klass = env->GetObjectClass(entity);
-    jfieldID field = env->GetFieldID(klass, "x", "D");
-	double result = env->GetDoubleField(entity, field);
-	env->DeleteLocalRef(klass);
-	return result;
+double getMotionZ(){
+    maps::Minecraft Minecraft{};
+    maps::EntityPlayerSP EntityPlayerSP{};
+
+    maps::Minecraft theMinecraft = Minecraft.theMinecraft.get();
+    maps::Minecraft g_theMinecraft = maps::Minecraft(theMinecraft, true);
+
+    maps::EntityPlayerSP thePlayer = theMinecraft.thePlayer.get();
+
+    return thePlayer.getMotionZ.get();
 }
 
 

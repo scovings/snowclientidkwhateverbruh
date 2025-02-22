@@ -36,6 +36,14 @@ void GUI::BlockGameInput(bool block) {
     }
 }
 
+void GUI::shutdown() {
+    if (!is_init) return;
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+    is_init = false;
+}
+
 bool GUI::init(HWND wnd_handle) {
     if (is_init) return false;
 
@@ -79,6 +87,9 @@ bool GUI::init(HWND wnd_handle) {
     ImGui_ImplWin32_Init(wnd_handle);
     ImGui_ImplOpenGL3_Init();
 
+    if(GetAsyncKeyState(VK_END)){
+        GUI::shutdown();
+    }
     RedirectConsole();
     std::cout << "[+] Console Redirected to ImGui!\n";
 
@@ -86,13 +97,7 @@ bool GUI::init(HWND wnd_handle) {
     return true;
 }
 
-void GUI::shutdown() {
-    if (!is_init) return;
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
-    is_init = false;
-}
+
 
 Fly* fly_mod = new Fly("Flyhack", 'F');
 Fastplace* fastplace_mod = new Fastplace(std::string("Fastplace"), 'G');
@@ -106,6 +111,12 @@ void GUI::draw() {
     eagle_mod->enabled = eagle_enabled;        // Now sets eagle_mod->enabled to eagle_enabled
     fastplace_mod->enabled = fastplace_enabled; // Now sets fastplace_mod->enabled to fastplace_enabled
     velocity_mod->enabled = velo_enabled;      
+
+    // Now assign the values in reverse
+    flight_enabled = fly_mod->enabled;         // Assign fly_mod's enabled state to flight_enabled
+    eagle_enabled = eagle_mod->enabled;        // Assign eagle_mod's enabled state to eagle_enabled
+    fastplace_enabled = fastplace_mod->enabled; // Assign fastplace_mod's enabled state to fastplace_enabled
+    velo_enabled = velocity_mod->enabled;    
 
     if (!do_draw) return;
     BlockGameInput(true);
@@ -246,6 +257,7 @@ void GUI::draw() {
     ShowConsoleWindow();
 
     ImGui::Render();
+    
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 

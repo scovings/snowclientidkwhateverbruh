@@ -35,6 +35,22 @@ class Fly : public Module{
     }
 };
 
+class ESP : public Module{
+    public:
+
+
+    
+    void init();
+    void toggle();
+    void onEnable();
+    void onDisable();
+    void onClientTick();
+    void on_key_press();
+    ESP(std::string name, int key) : Module(name, key){
+        init();
+    }
+};
+
 
 
 

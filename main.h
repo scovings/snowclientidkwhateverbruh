@@ -4,6 +4,8 @@
 #include "Event Bus/EventBus.h"
 #include <GL/gl.h> // OpenGL header
 #include "guiLibs/Hook.h"
+#include "jni/meta_jni.hpp"
+
 
 extern JavaVM* vm;
 extern JNIEnv* env;
